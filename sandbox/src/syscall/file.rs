@@ -349,6 +349,7 @@ pub async fn handle_dup<T: Guest<Sandbox>>(
 /// The `dup2` system call.
 ///
 /// This intercepts `dup2` system calls and handles virtual FD duplication.
+#[cfg(target_arch = "x86_64")]
 pub async fn handle_dup2<T: Guest<Sandbox>>(
     guest: &mut T,
     args: &reverie::syscalls::Dup2,
@@ -861,6 +862,7 @@ pub async fn handle_pselect6<T: Guest<Sandbox>>(
 ///
 /// This intercepts `poll` system calls and translates virtual FDs in the pollfd array
 /// to kernel FDs before calling the real syscall, then translates the results back.
+#[cfg(target_arch = "x86_64")]
 pub async fn handle_poll<T: Guest<Sandbox>>(
     guest: &mut T,
     args: &reverie::syscalls::Poll,
@@ -1157,6 +1159,7 @@ pub async fn handle_pwrite64<T: Guest<Sandbox>>(
 ///
 /// This intercepts `lseek` system calls and translates virtual FDs to kernel FDs,
 /// or calls FileOps::seek() for virtual files.
+#[cfg(target_arch = "x86_64")]
 pub async fn handle_lseek<T: Guest<Sandbox>>(
     _guest: &mut T,
     syscall: Syscall,
@@ -1250,6 +1253,7 @@ pub async fn handle_mmap<T: Guest<Sandbox>>(
 /// The `access` system call.
 ///
 /// This intercepts `access` system calls and translates paths according to the mount table.
+#[cfg(target_arch = "x86_64")]
 pub async fn handle_access<T: Guest<Sandbox>>(
     guest: &mut T,
     args: &reverie::syscalls::Access,
@@ -1328,6 +1332,7 @@ pub async fn handle_faccessat2<T: Guest<Sandbox>>(
 /// The `rename` system call.
 ///
 /// This intercepts `rename` system calls and translates both paths according to the mount table.
+#[cfg(target_arch = "x86_64")]
 pub async fn handle_rename<T: Guest<Sandbox>>(
     guest: &mut T,
     args: &reverie::syscalls::Rename,
@@ -1375,6 +1380,7 @@ pub async fn handle_rename<T: Guest<Sandbox>>(
 /// The `unlink` system call.
 ///
 /// This intercepts `unlink` system calls and translates paths according to the mount table.
+#[cfg(target_arch = "x86_64")]
 pub async fn handle_unlink<T: Guest<Sandbox>>(
     guest: &mut T,
     args: &reverie::syscalls::Unlink,
