@@ -3,6 +3,10 @@ use anyhow::Result;
 use std::{io::Write, os::unix::fs::MetadataExt, path::PathBuf, sync::Arc};
 use turso::value::Value;
 
+#[cfg(target_os = "linux")]
+use crate::{cmd::init::open_agentfs, fuse::FuseMountOptions, snapshot};
+
+#[cfg(not(target_os = "linux"))]
 use crate::{cmd::init::open_agentfs, fuse::FuseMountOptions};
 
 /// Arguments for the mount command.
@@ -80,9 +84,22 @@ pub fn mount(args: MountArgs) -> Result<()> {
         gid: args.gid,
     };
 
+    // Get the database path for snapshot functionality
+    let db_path = PathBuf::from(opts.db_path()?);
+
     let mount = move || {
         let rt = crate::get_runtime();
         let (_db, agentfs) = rt.block_on(open_agentfs(opts))?;
+
+        // Start the snapshot handler (handles SIGUSR1 for database snapshots)
+        // The handler runs in a background thread and will checkpoint + copy the DB
+        // when SIGUSR1 is received
+        #[cfg(target_os = "linux")]
+        {
+            let conn = agentfs.get_connection();
+            let _snapshot_handler = snapshot::start_snapshot_handler(db_path, conn)?;
+            eprintln!("Snapshot handler started (send SIGUSR1 to create snapshot)");
+        }
 
         // Check for overlay configuration
         let fs: Arc<dyn FileSystem> = rt.block_on(async {
